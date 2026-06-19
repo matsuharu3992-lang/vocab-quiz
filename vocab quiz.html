@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>英熟語テスト</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, 'Segoe UI', sans-serif; }
+    button { font-family: inherit; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const VOCAB = [
+  // Section 1: 自動詞＋前置詞＋A (1-)
+  { id:  1, phrase:"differ from A", meaning:"Aとは異なる", example:"This product does not differ from the original.", exampleJa:"この製品はオリジナルと異なりません。", blank:"differ from" },
+  { id:  2, phrase:"believe in A", meaning:"A（の存在）を信じる、Aをよいことだと信じる", example:"I believe in hard work.", exampleJa:"私は努力を信じています。", blank:"believe in" },
+  { id:  3, phrase:"look after A", meaning:"Aの世話をする", example:"She looks after her little brother.", exampleJa:"彼女は弟の世話をしています。", blank:"looks after" },
+  { id:  4, phrase:"succeed in A", meaning:"Aに成功する、Aに合格する", example:"He succeeded in the exam.", exampleJa:"彼は試験に合格しました。", blank:"succeeded in" },
+  { id:  5, phrase:"succeed to A", meaning:"Aのあとを継ぐ、Aを継承する", example:"She succeeded to her father's business.", exampleJa:"彼女は父親の事業を引き継ぎました。", blank:"succeeded to" },
+  { id:  6, phrase:"hear from A", meaning:"Aから連絡をもらう", example:"I haven't heard from him in a week.", exampleJa:"1週間彼から連絡がありません。", blank:"heard from" },
+  { id:  7, phrase:"hear of A", meaning:"Aのことを耳にする、Aのことをうわさに聞く", example:"Have you ever heard of this band?", exampleJa:"このバンドのことを聞いたことがありますか？", blank:"heard of" },
+  { id:  8, phrase:"suffer from A", meaning:"A（病気など）にかかる、Aで苦しむ", example:"Many people suffer from allergies.", exampleJa:"多くの人がアレルギーに苦しんでいます。", blank:"suffer from" },
+  { id:  9, phrase:"recover from A", meaning:"A（病気・ショックなど）から回復する", example:"She quickly recovered from her cold.", exampleJa:"彼女はすぐに風邪から回復しました。", blank:"recovered from" },
+  { id: 10, phrase:"prepare for A", meaning:"Aに備える、Aの準備をする", example:"We need to prepare for the meeting.", exampleJa:"私たちは会議の準備をする必要があります。", blank:"prepare for" },
+  { id: 11, phrase:"search for A", meaning:"A（人・物）をさがす、Aをさがし求める", example:"He is searching for his keys.", exampleJa:"彼は鍵を探しています。", blank:"searching for" },
+  { id: 12, phrase:"participate in A", meaning:"Aに参加する、Aに加わる", example:"Everyone can participate in the event.", exampleJa:"誰でもそのイベントに参加できます。", blank:"participate in" },
+  { id: 13, phrase:"insist on A", meaning:"Aを（強く）要求する、Aを主張する", example:"She insisted on paying the bill.", exampleJa:"彼女は代金を払うと主張しました。", blank:"insisted on" },
+  { id: 14, phrase:"long for A", meaning:"Aを切望する、Aを思い焦がれる", example:"He longs for a warm home.", exampleJa:"彼は温かい家庭を切望しています。", blank:"longs for" },
+  { id: 15, phrase:"run across A", meaning:"A（人）に偶然出会う、A（物）を偶然見つける", example:"You often run across old friends unexpectedly.", exampleJa:"予期せず旧友に偶然出会うことがあります。", blank:"run across" },
+  { id: 16, phrase:"stand by A", meaning:"Aの味方をする、Aを支持する", example:"True friends stand by you.", exampleJa:"本当の友達はあなたの味方をしてくれます。", blank:"stand by" },
+  { id: 17, phrase:"die of A", meaning:"A（が原因）で死ぬ", example:"He died of a heart attack.", exampleJa:"彼は心臓発作で亡くなりました。", blank:"died of" },
+  { id: 18, phrase:"get to A", meaning:"Aに着く、A（仕事など）を始める", example:"What time do you get to work?", exampleJa:"何時に職場に着きますか？", blank:"get to" },
+  { id: 19, phrase:"look into A", meaning:"A（事件・問題など）を調査する", example:"The police are looking into the case.", exampleJa:"警察がその事件を調査しています。", blank:"looking into" },
+  { id: 20, phrase:"aim at A", meaning:"Aをねらう", example:"She aimed at the target and fired.", exampleJa:"彼女は的をねらって発砲しました。", blank:"aimed at" },
+  { id: 21, phrase:"apply for A", meaning:"A（仕事や許可など）を求める、Aに応募する", example:"I want to apply for this job.", exampleJa:"この仕事に応募したいです。", blank:"apply for" },
+  { id: 22, phrase:"apply to A", meaning:"（規則などが）Aに当てはまる、Aに適用される", example:"This rule applies to everyone.", exampleJa:"このルールは全員に適用されます。", blank:"applies to" },
+  { id: 23, phrase:"major in A", meaning:"Aを専攻する", example:"She majors in biology at college.", exampleJa:"彼女は大学で生物学を専攻しています。", blank:"majors in" },
+  { id: 24, phrase:"run for A", meaning:"Aに立候補する", example:"He decided to run for mayor.", exampleJa:"彼は市長選に立候補することにしました。", blank:"run for" },
+  { id: 25, phrase:"approve of A", meaning:"Aを（妥当だと）認める、Aに賛成する", example:"My parents approve of my plan.", exampleJa:"両親は私の計画に賛成しています。", blank:"approve of" },
+  { id: 26, phrase:"derive from A", meaning:"（名前やデータなどが）Aに由来する、Aから派生する", example:"This word derives from Latin.", exampleJa:"この単語はラテン語に由来しています。", blank:"derives from" },
+  { id: 27, phrase:"do without A", meaning:"Aなしで済ます、Aなしで暮らす", example:"Can you do without coffee in the morning?", exampleJa:"朝はコーヒーなしで過ごせますか？", blank:"do without" },
+  { id: 28, phrase:"feed on A", meaning:"（動物が）Aを餌にする、Aを常食とする", example:"Cows feed on grass.", exampleJa:"牛は草を常食としています。", blank:"feed on" },
+  { id: 29, phrase:"get over A", meaning:"A（困難など）を乗り越える、A（病気など）から回復する", example:"It takes time to get over a breakup.", exampleJa:"失恋から立ち直るには時間がかかります。", blank:"get over" },
+  { id: 30, phrase:"graduate from A", meaning:"Aを卒業する", example:"She graduated from high school last year.", exampleJa:"彼女は去年高校を卒業しました。", blank:"graduated from" },
+  { id: 31, phrase:"argue with A", meaning:"Aと議論する、Aに反論する", example:"I often argue with my brother.", exampleJa:"私はよく兄と言い合いをします。", blank:"argue with" },
+  { id: 32, phrase:"communicate with A", meaning:"Aと連絡を取り合う、Aに意思を伝える", example:"It is important to communicate with your team.", exampleJa:"チームと意思疎通を図ることが大切です。", blank:"communicate with" },
+  { id: 33, phrase:"consult with A", meaning:"A（人）に相談する", example:"You should consult with a doctor.", exampleJa:"医師に相談した方がいいですよ。", blank:"consult with" },
+  // Section 2: 他動詞＋A＋前置詞＋B (34-)
+  { id: 34, phrase:"regard A as B", meaning:"AをBとみなす、AをBだと考える", example:"Many people regard him as a great leader.", exampleJa:"多くの人が彼を偉大なリーダーとみなしています。", blank:"regard him as" },
+  { id: 35, phrase:"associate A with B", meaning:"AからBを連想する、AをBと結びつけて考える", example:"People associate spring with cherry blossoms.", exampleJa:"人々は春というと桜を連想します。", blank:"associate spring with" },
+  { id: 36, phrase:"tell A from B", meaning:"AとBを識別する、AとBを見分ける", example:"Can you tell butter from margarine?", exampleJa:"バターとマーガリンを見分けられますか？", blank:"tell butter from" },
+  { id: 37, phrase:"congratulate A on B", meaning:"BのことでAを祝う", example:"I congratulate you on your graduation.", exampleJa:"ご卒業おめでとうございます。", blank:"congratulate you on" },
+  { id: 38, phrase:"prefer A to B", meaning:"BよりもAを好む", example:"I prefer tea to coffee.", exampleJa:"私はコーヒーよりお茶が好きです。", blank:"prefer tea to" },
+  { id: 39, phrase:"order A from B", meaning:"AをBから取り寄せる、AをBに注文する", example:"She ordered a book from an online store.", exampleJa:"彼女はオンラインストアで本を注文しました。", blank:"ordered a book from" },
+  { id: 40, phrase:"turn A into B", meaning:"AをBに変える", example:"They turned the old building into a museum.", exampleJa:"彼らは古い建物を博物館に変えました。", blank:"turned the old building into" },
+  { id: 41, phrase:"suspect A of B", meaning:"AにB（悪事・罪）の容疑をかける", example:"The police suspected him of theft.", exampleJa:"警察は彼を窃盗の容疑者と疑いました。", blank:"suspected him of" },
+  { id: 42, phrase:"look up A in B", meaning:"A（単語など）をB（辞書・本など）で調べる", example:"You should look up that word in the dictionary.", exampleJa:"その単語は辞書で調べるべきだ。", blank:"look up that word in" },
+  { id: 43, phrase:"free A from B", meaning:"AをBから解放する", example:"Exercise can free your mind from stress.", exampleJa:"運動は心をストレスから解放してくれます。", blank:"free your mind from" },
+  // Section 3: 3語以上の動詞句 (44-)
+  { id: 44, phrase:"have a look at A", meaning:"Aを見る", example:"Can you have a look at this report?", exampleJa:"このレポートを見てもらえますか？", blank:"have a look at" },
+  { id: 45, phrase:"pay attention to A", meaning:"Aに注意を払う", example:"Please pay attention to the road while driving.", exampleJa:"運転中は道路に注意を払ってください。", blank:"pay attention to" },
+  { id: 46, phrase:"make friends with A", meaning:"Aと親しくなる、Aと友達になる", example:"It is easy to make friends with people at school.", exampleJa:"学校で人と友達になるのは簡単です。", blank:"make friends with" },
+  { id: 47, phrase:"make fun of A", meaning:"Aをからかう、Aを笑いものにする", example:"Do not make fun of people's mistakes.", exampleJa:"人の失敗をからかってはいけません。", blank:"make fun of" },
+  { id: 48, phrase:"catch sight of A", meaning:"Aを見つける", example:"You can catch sight of the sea from the hilltop.", exampleJa:"丘の上から海を見つけることができます。", blank:"catch sight of" },
+  { id: 49, phrase:"lose sight of A", meaning:"Aを見失う", example:"Do not lose sight of your goals in life.", exampleJa:"人生の目標を見失ってはいけません。", blank:"lose sight of" },
+  { id: 50, phrase:"do the sights of A", meaning:"A（の名所）を見物する", example:"We plan to do the sights of Kyoto this weekend.", exampleJa:"今週末、京都の名所を見物する予定です。", blank:"do the sights of" },
+  { id: 51, phrase:"look out for A", meaning:"Aに気をつける", example:"Look out for cars when you cross the street.", exampleJa:"道路を渡るときは車に気をつけて。", blank:"Look out for" },
+  { id: 52, phrase:"look down on A", meaning:"A（人や言動など）を見下す、Aを軽蔑する", example:"You should not look down on others.", exampleJa:"他人を見下すべきではありません。", blank:"look down on" },
+  { id: 53, phrase:"take care of A", meaning:"Aの世話をする", example:"Can you take care of my dog this weekend?", exampleJa:"今週末、私の犬の世話をしてもらえますか？", blank:"take care of" },
+  { id: 54, phrase:"catch up with A", meaning:"A（人・車など）に追いつく", example:"I ran fast to catch up with my friends.", exampleJa:"友達に追いつくために速く走りました。", blank:"catch up with" },
+  { id: 55, phrase:"keep up with A", meaning:"Aに（遅れずに）ついていく", example:"It is hard to keep up with the latest news.", exampleJa:"最新ニュースについていくのは大変です。", blank:"keep up with" },
+  { id: 56, phrase:"come up with A", meaning:"A（考えなど）を思いつく、Aを提案する", example:"Can you come up with a better solution?", exampleJa:"もっと良い解決策を思いつけますか？", blank:"come up with" },
+  { id: 57, phrase:"feel at ease", meaning:"くつろぐ", example:"I always feel at ease at home.", exampleJa:"私はいつも家でくつろいでいます。", blank:"feel at ease" },
+  { id: 58, phrase:"feel ill at ease", meaning:"気持ちが落ち着かない", example:"I feel ill at ease in large crowds.", exampleJa:"大勢の人の中では気持ちが落ち着きません。", blank:"feel ill at ease" },
+  { id: 59, phrase:"find fault with A", meaning:"Aについて文句を言う、Aを非難する", example:"My boss always finds fault with my work.", exampleJa:"上司はいつも私の仕事に文句を言います。", blank:"finds fault with" },
+  { id: 60, phrase:"do away with A", meaning:"Aを廃止する、Aを取り除く", example:"We should do away with unnecessary rules.", exampleJa:"不要なルールは廃止すべきです。", blank:"do away with" },
+  { id: 61, phrase:"get along with A", meaning:"Aとうまくやっていく", example:"The children get along with their new teacher.", exampleJa:"子供たちは新しい先生とうまくやっています。", blank:"get along with" },
+  { id: 62, phrase:"get in touch with A", meaning:"（Aと）連絡をとる", example:"Feel free to get in touch with us anytime.", exampleJa:"いつでもお気軽にご連絡ください。", blank:"get in touch with" },
+  { id: 63, phrase:"take notice of A", meaning:"Aに注目する", example:"Please take notice of the changes around you.", exampleJa:"周りの変化に注目してください。", blank:"take notice of" },
+  { id: 64, phrase:"take A into account", meaning:"Aを考慮する", example:"Please take the weather into account when you plan.", exampleJa:"計画を立てるときは天気を考慮してください。", blank:"take the weather into account" },
+  { id: 65, phrase:"make use of A", meaning:"Aを使う、Aを利用する", example:"Make use of every opportunity you have.", exampleJa:"あらゆる機会を利用しましょう。", blank:"Make use of" },
+  { id: 66, phrase:"make the best of A", meaning:"A（不利な状況）を何とか切り抜ける", example:"We have to make the best of this situation.", exampleJa:"この状況を何とか切り抜けなければなりません。", blank:"make the best of" },
+  { id: 67, phrase:"take advantage of A", meaning:"Aを利用する、Aにつけ込む", example:"Take advantage of this discount before it ends.", exampleJa:"終わる前にこの割引を利用してください。", blank:"Take advantage of" },
+  { id: 68, phrase:"keep A in mind", meaning:"Aを心に留めておく、Aを肝に銘じる", example:"Keep this advice in mind for the future.", exampleJa:"この助言を将来のために心に留めておいてください。", blank:"Keep this advice in mind" },
+  // Section 4: be＋形容詞＋前置詞＋A (69-)
+  { id: 69, phrase:"be aware of A", meaning:"Aに気づいている、Aを知っている", example:"Are you aware of the risks?", exampleJa:"リスクに気づいていますか？", blank:"aware of" },
+  { id: 70, phrase:"be dependent on A", meaning:"Aに依存している、A次第である", example:"His success is dependent on hard work.", exampleJa:"彼の成功は努力次第です。", blank:"dependent on" },
+  { id: 71, phrase:"be common to A", meaning:"Aに共通している", example:"This problem is common to all students.", exampleJa:"この問題はすべての生徒に共通しています。", blank:"common to" },
+  { id: 72, phrase:"be similar to A", meaning:"Aに似ている", example:"Your idea is similar to mine.", exampleJa:"あなたのアイデアは私のものに似ています。", blank:"similar to" },
+  { id: 73, phrase:"be faced with A", meaning:"A（問題・困難など）に直面している", example:"We are faced with a difficult decision.", exampleJa:"私たちは難しい決断に直面しています。", blank:"faced with" },
+  { id: 74, phrase:"be dressed in A", meaning:"Aを着ている", example:"She was dressed in a red coat.", exampleJa:"彼女は赤いコートを着ていました。", blank:"dressed in" },
+  { id: 75, phrase:"be sure of A", meaning:"Aを確信している", example:"I am sure of his honesty.", exampleJa:"私は彼の誠実さを確信しています。", blank:"sure of" },
+  { id: 76, phrase:"be known for A", meaning:"Aで知られている、Aで有名である", example:"Japan is known for its sushi.", exampleJa:"日本は寿司で知られています。", blank:"known for" },
+  { id: 77, phrase:"be famous for A", meaning:"Aで有名である", example:"Paris is famous for the Eiffel Tower.", exampleJa:"パリはエッフェル塔で有名です。", blank:"famous for" },
+  { id: 78, phrase:"be infamous for A", meaning:"Aで悪名高い", example:"The criminal is infamous for his cruelty.", exampleJa:"その犯人は残酷さで悪名高いです。", blank:"infamous for" },
+  { id: 79, phrase:"be familiar to A", meaning:"A（人）によく知られている", example:"This song is familiar to everyone.", exampleJa:"この曲はみんなによく知られています。", blank:"familiar to" },
+  { id: 80, phrase:"be familiar with A", meaning:"（人が）Aに精通している", example:"She is familiar with computer programming.", exampleJa:"彼女はコンピュータープログラミングに精通しています。", blank:"familiar with" },
+  { id: 81, phrase:"be free from A", meaning:"A（不快なものなど）がない、Aを免れている", example:"Our school is free from bullying.", exampleJa:"私たちの学校はいじめがありません。", blank:"free from" },
+  { id: 82, phrase:"be ignorant of A", meaning:"Aを知らない", example:"He is ignorant of basic traffic rules.", exampleJa:"彼は基本的な交通ルールを知りません。", blank:"ignorant of" },
+  { id: 83, phrase:"be rich in A", meaning:"Aが豊富である", example:"Spinach is rich in iron.", exampleJa:"ほうれん草は鉄分が豊富です。", blank:"rich in" },
+  { id: 84, phrase:"be lacking in A", meaning:"Aが足りていない、Aが欠けている", example:"The soup is lacking in salt.", exampleJa:"このスープは塩が足りていません。", blank:"lacking in" },
+  { id: 85, phrase:"be poor at A", meaning:"Aが苦手である、Aが下手である", example:"I am poor at singing in public.", exampleJa:"私は人前での歌が苦手です。", blank:"poor at" },
+  { id: 86, phrase:"be typical of A", meaning:"Aの特徴である、Aを代表している", example:"This rainy weather is typical of June.", exampleJa:"この雨の天気は6月に典型的なものです。", blank:"typical of" },
+  { id: 87, phrase:"be based on A", meaning:"Aに基づいている", example:"This movie is based on a true story.", exampleJa:"この映画は実話に基づいています。", blank:"based on" },
+  { id: 88, phrase:"be tired of A", meaning:"Aに飽きている、Aにうんざりしている", example:"I am tired of eating the same meal every day.", exampleJa:"毎日同じ食事を食べるのに飽きました。", blank:"tired of" },
+  { id: 89, phrase:"be sick of A", meaning:"Aにうんざりしている", example:"I am sick of his constant complaining.", exampleJa:"彼の絶えない愚痴にうんざりしています。", blank:"sick of" },
+  { id: 90, phrase:"be proud of A", meaning:"Aを誇りに思う、Aを自慢する", example:"I am proud of my daughter's achievements.", exampleJa:"娘の成績を誇りに思います。", blank:"proud of" },
+  { id: 91, phrase:"be bound for A", meaning:"（列車や飛行機などが）A行きである", example:"This train is bound for Tokyo.", exampleJa:"この列車は東京行きです。", blank:"bound for" },
+  { id: 92, phrase:"be engaged in A", meaning:"Aに従事している、Aに携わっている", example:"She is engaged in volunteer work.", exampleJa:"彼女はボランティア活動に従事しています。", blank:"engaged in" },
+  { id: 93, phrase:"be sensitive to A", meaning:"Aに敏感である", example:"She is sensitive to other people's feelings.", exampleJa:"彼女は他人の気持ちに敏感です。", blank:"sensitive to" },
+  { id: 94, phrase:"be eager for A", meaning:"Aを熱望する", example:"The students are eager for new knowledge.", exampleJa:"学生たちは新しい知識を熱望しています。", blank:"eager for" },
+  { id: 95, phrase:"be anxious about A", meaning:"Aを心配している", example:"She is anxious about her job interview.", exampleJa:"彼女は就職面接のことを心配しています。", blank:"anxious about" },
+  { id: 96, phrase:"be anxious for A", meaning:"Aを切望する", example:"He is anxious for a chance to prove himself.", exampleJa:"彼は自分を証明するチャンスを切望しています。", blank:"anxious for" },
+  // Section 5: 前置詞＋A (97-)
+  { id: 97, phrase:"on business", meaning:"商用で、出張で、仕事が目的で", example:"She is in New York on business this week.", exampleJa:"彼女は今週、商用でニューヨークにいます。", blank:"on business" },
+  { id: 98, phrase:"for free", meaning:"無料で", example:"You can download the app for free.", exampleJa:"そのアプリは無料でダウンロードできます。", blank:"for free" },
+  { id: 99, phrase:"in a hurry", meaning:"急いで", example:"He ate his breakfast in a hurry to catch the bus.", exampleJa:"彼はバスに乗るために急いで朝食を食べた。", blank:"in a hurry" },
+  { id:100, phrase:"at the moment", meaning:"現在のところ、目下のところ", example:"She is not available at the moment.", exampleJa:"彼女は今のところ手が離せません。", blank:"at the moment" },
+  { id:101, phrase:"in a sense", meaning:"ある意味で、ある点において", example:"In a sense, we are all responsible.", exampleJa:"ある意味で、私たち全員に責任があります。", blank:"In a sense" },
+  { id:102, phrase:"to A's surprise", meaning:"Aが驚いたことに", example:"To my surprise, I won the contest.", exampleJa:"驚いたことに、私はコンテストで優勝した。", blank:"To my surprise" },
+  { id:103, phrase:"in short", meaning:"要するに、手短に言えば", example:"In short, we need more time.", exampleJa:"要するに、もっと時間が必要です。", blank:"In short" },
+  { id:104, phrase:"as a result", meaning:"（Aの）結果として", example:"He studied hard and, as a result, passed the exam.", exampleJa:"彼は一生懸命勉強し、その結果試験に合格した。", blank:"as a result" },
+  { id:105, phrase:"in common", meaning:"共通の、共通して", example:"We have a lot in common.", exampleJa:"私たちには共通点がたくさんあります。", blank:"in common" },
+  { id:106, phrase:"on the increase", meaning:"増加中で", example:"Online shopping is on the increase.", exampleJa:"ネットショッピングが増加しています。", blank:"on the increase" },
+  { id:107, phrase:"as a matter of course", meaning:"当然のこととして、もちろん", example:"She thanked everyone as a matter of course.", exampleJa:"当然のこととして、彼女は全員にお礼を言った。", blank:"as a matter of course" },
+  { id:108, phrase:"as a matter of fact", meaning:"実際は、実は", example:"As a matter of fact, I knew him before.", exampleJa:"実は、私は以前から彼を知っていました。", blank:"As a matter of fact" },
+  { id:109, phrase:"for a while", meaning:"しばらくの間、少しの間", example:"Let me think for a while.", exampleJa:"しばらく考えさせてください。", blank:"for a while" },
+  { id:110, phrase:"at any rate", meaning:"とにかく、いずれにしても", example:"At any rate, we should bring umbrellas.", exampleJa:"とにかく、傘を持っていくべきです。", blank:"At any rate" },
+  { id:111, phrase:"in any case", meaning:"とにかく、いずれにしても", example:"In any case, I will send you the report.", exampleJa:"いずれにしても、レポートをお送りします。", blank:"In any case" },
+  { id:112, phrase:"at first hand", meaning:"直接に、じかに", example:"I heard the news at first hand from him.", exampleJa:"私はそのニュースを彼から直接聞きました。", blank:"at first hand" },
+  { id:113, phrase:"in general", meaning:"一般に、概して", example:"In general, exercise is good for your health.", exampleJa:"一般に、運動は健康に良いです。", blank:"In general" },
+  { id:114, phrase:"on purpose", meaning:"故意に、わざと", example:"He spilled his drink on purpose.", exampleJa:"彼はわざと飲み物をこぼしました。", blank:"on purpose" },
+  { id:115, phrase:"by chance", meaning:"たまたま、偶然に", example:"I met my old friend by chance at the supermarket.", exampleJa:"スーパーでたまたま昔の友人に会いました。", blank:"by chance" },
+  { id:116, phrase:"in public", meaning:"公然と、人前で", example:"He proposed to her in public.", exampleJa:"彼は彼女に人前でプロポーズしました。", blank:"in public" },
+  { id:117, phrase:"from a point of view", meaning:"…の観点からすると、…の見地からすれば", example:"From a historical point of view, it was important.", exampleJa:"歴史的な観点からすると、それは重要でした。", blank:"From a historical point of view" },
+  { id:118, phrase:"by degrees", meaning:"徐々に、次第に、だんだん", example:"The sky turned dark by degrees.", exampleJa:"空は徐々に暗くなっていきました。", blank:"by degrees" },
+  { id:119, phrase:"for sure", meaning:"確実に、確かに", example:"I do not know for sure what happened.", exampleJa:"何が起きたのか確実にはわかりません。", blank:"for sure" },
+  { id:120, phrase:"for the first time in A", meaning:"Aぶりに、Aしてはじめて", example:"I saw him for the first time in five years.", exampleJa:"5年ぶりに彼に会いました。", blank:"for the first time in" },
+  { id:121, phrase:"in advance", meaning:"あらかじめ、前もって", example:"Please book your seat in advance.", exampleJa:"席はあらかじめ予約してください。", blank:"in advance" },
+  { id:122, phrase:"on time", meaning:"時間通りに", example:"The plane arrived on time.", exampleJa:"飛行機は時間通りに到着しました。", blank:"on time" },
+  { id:123, phrase:"for the time being", meaning:"当分の間、さしあたり", example:"Let us keep this secret for the time being.", exampleJa:"当分の間、これは秘密にしておきましょう。", blank:"for the time being" },
+  { id:124, phrase:"in detail", meaning:"（説明などが）詳しく、詳細に", example:"Please explain the plan in detail.", exampleJa:"計画を詳しく説明してください。", blank:"in detail" },
+  { id:125, phrase:"against one's will", meaning:"（自分の）意に反して", example:"She was forced to sign it against her will.", exampleJa:"彼女は意に反してそれにサインさせられた。", blank:"against her will" },
+  { id:126, phrase:"in person", meaning:"（代理ではなく）本人で、じきじきに", example:"I want to discuss this in person.", exampleJa:"これについては直接話し合いたいです。", blank:"in person" },
+  { id:127, phrase:"on the other hand", meaning:"その一方で、他方では、これに反して", example:"It is cheap, but on the other hand, it is not durable.", exampleJa:"安いですが、その一方で耐久性がありません。", blank:"on the other hand" },
+  { id:128, phrase:"in the long run", meaning:"結局、長い目で見れば", example:"Exercise pays off in the long run.", exampleJa:"運動は長い目で見れば効果があります。", blank:"in the long run" },
+  { id:129, phrase:"in the way", meaning:"（Aの）邪魔になって", example:"That tree is really in the way.", exampleJa:"あの木は本当に邪魔だ。", blank:"in the way" },
+  { id:130, phrase:"under way", meaning:"（計画などが）進行中で", example:"The renovation is currently under way.", exampleJa:"改修工事が現在進行中です。", blank:"under way" },
+  { id:131, phrase:"in turn", meaning:"順番に、交代で、今度は", example:"Each student answered in turn.", exampleJa:"各生徒が順番に答えました。", blank:"in turn" },
+  { id:132, phrase:"on end", meaning:"続けて", example:"She practiced the piano for hours on end.", exampleJa:"彼女は何時間もピアノの練習を続けた。", blank:"on end" },
+  { id:133, phrase:"on the spot", meaning:"その場で、即座に", example:"I had to answer the question on the spot.", exampleJa:"私はその場で質問に答えなければなりませんでした。", blank:"on the spot" },
+  { id:134, phrase:"as a rule", meaning:"概して、普通は、一般に", example:"As a rule, I go to bed before midnight.", exampleJa:"概して、私は真夜中前に寝ます。", blank:"As a rule" },
+  { id:135, phrase:"at a time", meaning:"同時に、一度に", example:"Only one person can enter at a time.", exampleJa:"一度に一人しか入れません。", blank:"at a time" },
+  { id:136, phrase:"without fail", meaning:"（約束・命令を強めて）必ず、いつも", example:"He goes to the gym every day without fail.", exampleJa:"彼は毎日必ずジムに行きます。", blank:"without fail" },
+  // Section 6: 群前置詞 (137-)
+  { id:137, phrase:"in spite of A", meaning:"Aにもかかわらず", example:"She smiled in spite of her pain.", exampleJa:"彼女は痛みにもかかわらず微笑んだ。", blank:"in spite of" },
+  { id:138, phrase:"in danger of A", meaning:"Aの危険性があって", example:"The species is in danger of extinction.", exampleJa:"その種は絶滅の危険性があります。", blank:"in danger of" },
+  { id:139, phrase:"in search of A", meaning:"Aを探して、Aを求めて", example:"She moved to the city in search of work.", exampleJa:"彼女は仕事を求めて都会に引っ越しました。", blank:"in search of" },
+  { id:140, phrase:"thanks to A", meaning:"Aのおかげで、Aの結果", example:"I got the job thanks to your help.", exampleJa:"あなたの助けのおかげで仕事が得られました。", blank:"thanks to" },
+  { id:141, phrase:"at the cost of A", meaning:"Aを犠牲にして", example:"He succeeded at the cost of his health.", exampleJa:"彼は健康を犠牲にして成功しました。", blank:"at the cost of" },
+  { id:142, phrase:"at the sight of A", meaning:"Aを見て", example:"The child cried at the sight of the dog.", exampleJa:"子供は犬を見て泣き出しました。", blank:"at the sight of" },
+  { id:143, phrase:"at the thought of A", meaning:"Aを考えて", example:"She smiled at the thought of seeing him again.", exampleJa:"彼女は彼に再会することを考えて微笑んだ。", blank:"at the thought of" },
+  { id:144, phrase:"at the mercy of A", meaning:"Aのなすがままで、Aに左右されて", example:"The sailors were at the mercy of the storm.", exampleJa:"船員たちは嵐のなすがままでした。", blank:"at the mercy of" },
+  { id:145, phrase:"in exchange for A", meaning:"Aの代わりに、Aと引き換えに", example:"They gave food in exchange for work.", exampleJa:"彼らは労働の代わりに食べ物を与えられた。", blank:"in exchange for" },
+  { id:146, phrase:"in return for A", meaning:"Aのお返しに、Aの見返りに", example:"He helped me in return for my kindness.", exampleJa:"彼は私の親切の見返りに助けてくれました。", blank:"in return for" },
+  { id:147, phrase:"in place of A", meaning:"Aの代わりに", example:"Use honey in place of sugar.", exampleJa:"砂糖の代わりにはちみつを使ってください。", blank:"in place of" },
+  { id:148, phrase:"in addition to A", meaning:"Aに加えて", example:"In addition to English, she speaks French.", exampleJa:"英語に加えて、彼女はフランス語も話します。", blank:"In addition to" },
+  { id:149, phrase:"by means of A", meaning:"Aを（手段として）用いて、Aによって", example:"I fixed it by means of a software update.", exampleJa:"ソフトウェアの更新によって問題を修正しました。", blank:"by means of" },
+  { id:150, phrase:"for fear of A", meaning:"Aを恐れて、Aしないように", example:"She whispered for fear of waking the baby.", exampleJa:"赤ちゃんを起こさないようにひそひそ話しました。", blank:"for fear of" },
+  { id:151, phrase:"in terms of A", meaning:"Aの観点から（言うと）、Aに関して", example:"In terms of cost, this is the best option.", exampleJa:"費用の観点から言うと、これが最善の選択肢です。", blank:"In terms of" },
+  { id:152, phrase:"at the risk of A", meaning:"Aの危険を冒して、Aを犠牲にして", example:"He saved her at the risk of his own life.", exampleJa:"彼は自分の命を危険にさらして彼女を救いました。", blank:"at the risk of" },
+  // Section 7: 副詞句を中心とした熟語 (153-)
+  { id:153, phrase:"before long", meaning:"まもなく、すぐに", example:"Do not worry, she will arrive before long.", exampleJa:"心配しないで、彼女はまもなく到着します。", blank:"before long" },
+  { id:154, phrase:"from now on", meaning:"これからは、ここから先は", example:"From now on, I will be more careful.", exampleJa:"これからは、もっと注意します。", blank:"From now on" },
+  { id:155, phrase:"on average", meaning:"平均して", example:"On average, I sleep eight hours a night.", exampleJa:"平均して、私は一晩8時間寝ます。", blank:"On average" },
+  { id:156, phrase:"as usual", meaning:"いつものように、相変わらず", example:"She arrived late, as usual.", exampleJa:"彼女はいつものように遅れて到着しました。", blank:"as usual" },
+  { id:157, phrase:"right away", meaning:"すぐに、ただちに", example:"I will do it right away.", exampleJa:"すぐにやります。", blank:"right away" },
+  { id:158, phrase:"from time to time", meaning:"ときどき", example:"From time to time, I treat myself to a nice dinner.", exampleJa:"ときどき、自分へのご褒美においしい食事をします。", blank:"From time to time" },
+  { id:159, phrase:"more or less", meaning:"だいたい、多かれ少なかれ", example:"The project is more or less finished.", exampleJa:"プロジェクトはだいたい終わりました。", blank:"more or less" },
+  { id:160, phrase:"as it were", meaning:"いわば", example:"She is, as it were, a walking dictionary.", exampleJa:"彼女はいわば歩く辞書です。", blank:"as it were" },
+  { id:161, phrase:"by and large", meaning:"概して、一般的に見て", example:"By and large, the plan worked well.", exampleJa:"概して、計画はうまくいきました。", blank:"By and large" },
+  { id:162, phrase:"first of all", meaning:"まず最初に、まず第一に", example:"First of all, let me introduce myself.", exampleJa:"まず最初に、自己紹介させてください。", blank:"First of all" },
+  { id:163, phrase:"for good", meaning:"永久に", example:"She decided to quit smoking for good.", exampleJa:"彼女は永久にタバコをやめることにしました。", blank:"for good" },
+  // Section 8: 動詞を中心とした熟語 (164-)
+  { id:164, phrase:"see A off", meaning:"Aを見送る", example:"I went to the airport to see my friend off.", exampleJa:"私は友人を見送りに空港に行きました。", blank:"see my friend off" },
+  { id:165, phrase:"call off A", meaning:"Aを中止する、Aを解消する", example:"We had to call off the picnic due to rain.", exampleJa:"雨のためにピクニックを中止しなければなりませんでした。", blank:"call off" },
+  { id:166, phrase:"put off A", meaning:"Aを延期する、Aを遅らせる", example:"Do not put off what you can do today.", exampleJa:"今日できることを先延ばしにしてはいけません。", blank:"put off" },
+  { id:167, phrase:"carry out A", meaning:"Aをやり遂げる、A（実験など）を行なう", example:"She carried out her mission successfully.", exampleJa:"彼女は任務を首尾よくやり遂げました。", blank:"carried out" },
+  { id:168, phrase:"find out A", meaning:"A（情報・真相など）を見つけ出す、Aを知る", example:"I need to find out the truth.", exampleJa:"私は真実を見つけ出す必要があります。", blank:"find out" },
+  { id:169, phrase:"point out A", meaning:"Aを指摘する", example:"She pointed out the mistake in my report.", exampleJa:"彼女はレポートの間違いを指摘してくれました。", blank:"pointed out" },
+  { id:170, phrase:"hand in A", meaning:"Aを提出する", example:"Please hand in your homework by Friday.", exampleJa:"金曜日までに宿題を提出してください。", blank:"hand in" },
+  { id:171, phrase:"put on A", meaning:"A（服・靴など）を着る", example:"She put on her coat and left.", exampleJa:"彼女はコートを着て出かけました。", blank:"put on" },
+  { id:172, phrase:"put on weight", meaning:"太る、体重が増える", example:"I put on weight during the holidays.", exampleJa:"休暇中に体重が増えました。", blank:"put on weight" },
+  { id:173, phrase:"try on A", meaning:"Aを試着する", example:"Can I try on these shoes?", exampleJa:"この靴を試着してもいいですか？", blank:"try on" },
+  { id:174, phrase:"take off A", meaning:"A（服・靴など）を脱ぐ", example:"Please take off your shoes at the door.", exampleJa:"玄関で靴を脱いでください。", blank:"take off" },
+  { id:175, phrase:"set A free", meaning:"A（人）を解放する", example:"They set the bird free.", exampleJa:"彼らは鳥を解放しました。", blank:"set the bird free" },
+  { id:176, phrase:"carry on A", meaning:"A（仕事など）を続ける", example:"Please carry on your work.", exampleJa:"仕事を続けてください。", blank:"carry on" },
+  { id:177, phrase:"leave A alone", meaning:"Aに干渉しない、Aを放っておく", example:"Just leave me alone for a while.", exampleJa:"しばらくそっとしておいてください。", blank:"leave me alone" },
+  { id:178, phrase:"give up A", meaning:"A（悪習など）をやめる、A（考え・希望など）をあきらめる", example:"Do not give up your dreams.", exampleJa:"夢をあきらめないでください。", blank:"give up" },
+  { id:179, phrase:"kill off A", meaning:"A（生物）を大量に殺す、Aを絶滅させる", example:"Pollution can kill off fish in the river.", exampleJa:"汚染は川の魚を大量に死なせることがあります。", blank:"kill off" },
+  { id:180, phrase:"bring about A", meaning:"Aをもたらす", example:"Technology has brought about many changes.", exampleJa:"技術は多くの変化をもたらしました。", blank:"brought about" },
+  { id:181, phrase:"come about", meaning:"（予想外のことが）起こる", example:"How did this problem come about?", exampleJa:"この問題はどのようにして起こったのですか？", blank:"come about" },
+  { id:182, phrase:"die out", meaning:"絶滅する、（風習などが）廃れる", example:"Many species may die out due to climate change.", exampleJa:"多くの種が気候変動で絶滅するかもしれません。", blank:"die out" },
+  { id:183, phrase:"break out", meaning:"（戦争や災害などが）起こる、勃発する", example:"A fire broke out in the building.", exampleJa:"建物で火事が起こりました。", blank:"broke out" },
+  { id:184, phrase:"turn up", meaning:"現れる", example:"He did not turn up at the meeting.", exampleJa:"彼は会議に現れませんでした。", blank:"turn up" },
+  { id:185, phrase:"hang up", meaning:"電話を切る、中断する", example:"She hung up without saying goodbye.", exampleJa:"彼女はさよならも言わずに電話を切りました。", blank:"hung up" },
+  { id:186, phrase:"stand out", meaning:"目立つ、卓越する", example:"Her red dress made her stand out in the crowd.", exampleJa:"赤いドレスのおかげで彼女は群衆の中で目立ちました。", blank:"stand out" },
+  { id:187, phrase:"stay up", meaning:"夜遅くまで起きている、徹夜する", example:"I stayed up late to finish the project.", exampleJa:"プロジェクトを終えるために夜遅くまで起きていました。", blank:"stayed up" },
+  { id:188, phrase:"go on doing", meaning:"…し続ける", example:"He went on talking for an hour.", exampleJa:"彼は1時間話し続けました。", blank:"went on" },
+  { id:189, phrase:"get lost", meaning:"迷子になる、道に迷う", example:"I got lost in the forest.", exampleJa:"私は森で迷子になりました。", blank:"got lost" },
+  { id:190, phrase:"come true", meaning:"（夢などが）実現する、本当になる", example:"Her dream of traveling the world came true.", exampleJa:"世界旅行という彼女の夢が実現しました。", blank:"came true" },
+  { id:191, phrase:"come to an end", meaning:"終了する、止まる", example:"The meeting finally came to an end.", exampleJa:"会議はついに終了しました。", blank:"came to an end" },
+  { id:192, phrase:"come to light", meaning:"（秘密などが）明るみに出る、ばれる", example:"New evidence came to light during the trial.", exampleJa:"裁判中に新たな証拠が明るみに出た。", blank:"came to light" },
+  { id:193, phrase:"take place", meaning:"（行事・試合など）行なわれる、（事が）起こる", example:"The meeting will take place tomorrow.", exampleJa:"会議は明日行なわれます。", blank:"take place" },
+  { id:194, phrase:"play a role in A", meaning:"Aにおいて…な役割を果たす", example:"Exercise plays a key role in staying healthy.", exampleJa:"運動は健康維持において重要な役割を果たします。", blank:"plays a key role in" },
+  { id:195, phrase:"gain weight", meaning:"体重が増える", example:"She gained weight during the winter.", exampleJa:"彼女は冬の間に体重が増えました。", blank:"gained weight" },
+  { id:196, phrase:"happen to do", meaning:"偶然…する、たまたま…する", example:"I happened to meet him on the street.", exampleJa:"私はたまたま彼を道で見かけました。", blank:"happened to" },
+  { id:197, phrase:"manage to do", meaning:"なんとか…する、やっとのことで…する", example:"She managed to finish on time.", exampleJa:"彼女はなんとか時間内に終えました。", blank:"managed to" },
+  { id:198, phrase:"never fail to do", meaning:"必ず…する", example:"He never fails to keep his promises.", exampleJa:"彼は必ず約束を守ります。", blank:"never fails to" },
+  { id:199, phrase:"be about to do", meaning:"まさに…しようとしている", example:"I was about to leave when you called.", exampleJa:"あなたが電話してきたとき、まさに出かけようとしていました。", blank:"was about to" },
+  { id:200, phrase:"be free to do", meaning:"自由に…できる、…するのは勝手である", example:"You are free to leave whenever you want.", exampleJa:"あなたはいつでも自由に帰ることができます。", blank:"free to" },
+  { id:201, phrase:"be supposed to do", meaning:"（規則などで）…することになっている", example:"You are supposed to wear a seatbelt.", exampleJa:"シートベルトを着用することになっています。", blank:"supposed to" },
+  { id:202, phrase:"be apt to do", meaning:"…しがちである、…する傾向がある", example:"He is apt to forget things easily.", exampleJa:"彼はものを忘れがちです。", blank:"apt to" },
+  { id:203, phrase:"be to blame for A", meaning:"Aについて責任がある", example:"The driver is to blame for the accident.", exampleJa:"その事故の責任は運転手にあります。", blank:"to blame for" },
+  { id:204, phrase:"make up one's mind", meaning:"（…することを）決心する", example:"I have made up my mind to study abroad.", exampleJa:"私は留学することを決心しました。", blank:"made up my mind" },
+  { id:205, phrase:"that is to say", meaning:"すなわち、言い換えれば", example:"She will visit next Sunday, that is to say, May 16th.", exampleJa:"彼女は次の日曜日、つまり5月16日に来る予定です。", blank:"that is to say" },
+];
+
+const SECTIONS = [
+  { label: "全て",   ids: null },
+  { label: "Sec.1", ids: [1,33] },
+  { label: "Sec.2", ids: [34,43] },
+  { label: "Sec.3", ids: [44,68] },
+  { label: "Sec.4", ids: [69,96] },
+  { label: "Sec.5", ids: [97,136] },
+  { label: "Sec.6", ids: [137,152] },
+  { label: "Sec.7", ids: [153,163] },
+  { label: "Sec.8", ids: [164,205] },
+];
+
+const STORAGE_KEY = "vocab_quiz_progress";
+const WRONG_KEY   = "vocab_quiz_wrong";
+const COUNT_OPTIONS = [5, 10, 15, 20, "全"];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getWrongChoices(item, all) {
+  return shuffle(all.filter(v => v.id !== item.id)).slice(0, 3).map(v => v.meaning);
+}
+
+function getWrongPhrases(item, all) {
+  return shuffle(all.filter(v => v.id !== item.id)).slice(0, 3).map(v => v.phrase);
+}
+
+function buildQuestions(pool, count) {
+  return shuffle(pool).slice(0, count).map(item => ({
+    item, correct: item.meaning,
+    choices: shuffle([item.meaning, ...getWrongChoices(item, VOCAB)]),
+  }));
+}
+
+function buildFillQuestions(pool, count) {
+  return shuffle(pool).slice(0, count).map(item => ({
+    item, correct: item.phrase,
+    choices: shuffle([item.phrase, ...getWrongPhrases(item, VOCAB)]),
+  }));
+}
+
+function blankExample(example, blank) {
+  const idx = example.toLowerCase().indexOf(blank.toLowerCase());
+  if (idx === -1) return example;
+  return example.slice(0, idx) + "________" + example.slice(idx + blank.length);
+}
+
+function HighlightedExample({ example, phrase }) {
+  const core = phrase.replace(/\s*[\(\[].*?[\)\]]\s*/g, " ").trim();
+  const words = core.split(/\s+/).filter(Boolean);
+  const regex = new RegExp(`(${words.join("\\s+")})`, "i");
+  const parts = example.split(regex);
+  return (
+    <span>
+      {parts.map((part, i) =>
+        regex.test(part)
+          ? <span key={i} style={{background:"linear-gradient(135deg,#1d4ed8,#7c3aed)",color:"#fff",fontWeight:"800",borderRadius:"6px",padding:"2px 6px",margin:"0 1px"}}>{part}</span>
+          : part
+      )}
+    </span>
+  );
+}
+
+function StatCard({ label, value, color, onClick, clickable, clickColor }) {
+  const bc = clickColor || "#f87171";
+  return (
+    <div onClick={onClick} style={{background:"#1e293b",borderRadius:"12px",padding:"14px 18px",textAlign:"center",minWidth:"70px",cursor:clickable?"pointer":"default",border:clickable?`2px solid ${bc}`:"2px solid transparent"}}>
+      <div style={{fontSize:"24px",fontWeight:"800",color}}>{value}</div>
+      <div style={{fontSize:"11px",color:"#64748b",marginTop:"2px"}}>{label}</div>
+      {clickable && <div style={{fontSize:"9px",color:bc,marginTop:"3px"}}>タップして確認</div>}
+    </div>
+  );
+}
+
+function btnStyle(bg, outline=false) {
+  return {background:outline?"transparent":bg,border:`2px solid ${bg}`,color:outline?bg:"#fff",borderRadius:"12px",padding:"13px 20px",fontSize:"14px",fontWeight:"600",cursor:"pointer",width:"100%"};
+}
+
+function VocabQuiz() {
+  const allAnswersRef = useRef([]);
+  const [mode, setMode] = useState("home");
+  const [isRetry, setIsRetry] = useState(false);
+  const [questionCount, setQuestionCount] = useState(10);
+  const [sectionIdx, setSectionIdx] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+  const [allAnswers, setAllAnswers] = useState([]);
+  const [progress, setProgress] = useState({});
+  const [savedWrong, setSavedWrong] = useState([]);
+  const [quizMode, setQuizMode] = useState("meaning");
+  const [showWrongModal, setShowWrongModal] = useState(false);
+  const [showMasteredModal, setShowMasteredModal] = useState(false);
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem(STORAGE_KEY);
+      if (p) setProgress(JSON.parse(p));
+      const w = localStorage.getItem(WRONG_KEY);
+      if (w) setSavedWrong(JSON.parse(w));
+    } catch(e) {}
+  }, []);
+
+  function saveAll(newProgress, newWrong) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newProgress)); } catch(e) {}
+    try { localStorage.setItem(WRONG_KEY, JSON.stringify(newWrong)); } catch(e) {}
+  }
+
+  function getPool(retry) {
+    if (retry) return VOCAB.filter(v => savedWrong.includes(v.id));
+    const sec = SECTIONS[sectionIdx];
+    if (!sec.ids) return VOCAB;
+    return VOCAB.filter(v => v.id >= sec.ids[0] && v.id <= sec.ids[1]);
+  }
+
+  function startQuiz(retry=false, qmode=quizMode) {
+    setIsRetry(retry); setQuizMode(qmode);
+    const pool = getPool(retry);
+    const count = retry ? pool.length : (questionCount==="全" ? pool.length : Math.min(questionCount, pool.length));
+    setQuestions(qmode==="fill" ? buildFillQuestions(pool,count) : buildQuestions(pool,count));
+    allAnswersRef.current = [];
+    setCurrent(0); setSelected(null); setScore(0); setAllAnswers([]);
+    setMode("quiz");
+  }
+
+  function handleSelect(choice) {
+    if (selected !== null) return;
+    const q = questions[current];
+    const isCorrect = choice === q.correct;
+    const ans = {item:q.item, chosen:choice, correct:q.correct, isCorrect};
+    allAnswersRef.current = [...allAnswersRef.current, ans];
+    setSelected(choice);
+    if (isCorrect) setScore(s => s+1);
+    setAllAnswers([...allAnswersRef.current]);
+  }
+
+  function handleNext() {
+    if (current+1 >= questions.length) {
+      finishQuiz(allAnswersRef.current);
+    } else {
+      setCurrent(c => c+1); setSelected(null);
+    }
+  }
+
+  function finishQuiz(answers) {
+    const newProgress = {...progress};
+    answers.forEach(a => {
+      const id = a.item.id;
+      if (!newProgress[id]) newProgress[id] = {correct:0, total:0};
+      newProgress[id].total++;
+      if (a.isCorrect) newProgress[id].correct++;
+    });
+    const wrongIds  = answers.filter(a => !a.isCorrect).map(a => a.item.id);
+    const correctIds= answers.filter(a =>  a.isCorrect).map(a => a.item.id);
+    const newMerged = Array.from(new Set([
+      ...savedWrong.filter(id => !correctIds.includes(id)),
+      ...wrongIds,
+    ]));
+    setProgress(newProgress);
+    setSavedWrong(newMerged);
+    setAllAnswers([...answers]);
+    saveAll(newProgress, newMerged);
+    setMode("result");
+  }
+
+  const masteredCount = Object.values(progress).filter(p => p.total>=2 && p.correct/p.total>=0.8).length;
+  const incorrect = allAnswers.filter(a => !a.isCorrect);
+
+  if (mode==="home") {
+    const pool = getPool(false);
+    return (
+      <div style={{minHeight:"100vh",background:"#0f172a",color:"#f1f5f9",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+        <div style={{fontSize:"12px",letterSpacing:"4px",color:"#94a3b8",textTransform:"uppercase",marginBottom:"6px"}}>英熟語テスト</div>
+        <h1 style={{fontSize:"clamp(20px,5vw,32px)",fontWeight:"800",margin:"0 0 4px",background:"linear-gradient(135deg,#60a5fa,#a78bfa)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",textAlign:"center"}}>動詞句・熟語</h1>
+        <div style={{color:"#64748b",fontSize:"13px",marginBottom:"20px"}}>全205語 · Part 2</div>
+
+        <div style={{display:"flex",gap:"10px",marginBottom:"20px",flexWrap:"wrap",justifyContent:"center"}}>
+          <StatCard label="総単語数" value="205" color="#60a5fa"/>
+          <StatCard label="習得済み" value={masteredCount} color="#34d399"
+            onClick={masteredCount>0?()=>setShowMasteredModal(true):undefined} clickable={masteredCount>0} clickColor="#34d399"/>
+          <StatCard label="要復習" value={savedWrong.length} color="#f87171"
+            onClick={savedWrong.length>0?()=>setShowWrongModal(true):undefined} clickable={savedWrong.length>0}/>
+        </div>
+
+        {showWrongModal && (
+          <div onClick={()=>setShowWrongModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#1e293b",borderRadius:"20px 20px 0 0",padding:"20px",width:"100%",maxWidth:"480px",maxHeight:"80vh",overflowY:"auto"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+                <div><div style={{fontSize:"16px",fontWeight:"700"}}>要復習の単語</div><div style={{fontSize:"12px",color:"#f87171"}}>{savedWrong.length}語</div></div>
+                <button onClick={()=>setShowWrongModal(false)} style={{background:"#334155",border:"none",color:"#94a3b8",borderRadius:"8px",padding:"6px 12px",cursor:"pointer"}}>✕ 閉じる</button>
+              </div>
+              {VOCAB.filter(v=>savedWrong.includes(v.id)).map(v=>(
+                <div key={v.id} style={{background:"#0f172a",borderRadius:"12px",padding:"14px",marginBottom:"8px",borderLeft:"3px solid #f87171"}}>
+                  <div style={{fontWeight:"700",fontSize:"14px",color:"#a78bfa",marginBottom:"4px"}}>{v.phrase}</div>
+                  <div style={{fontSize:"13px",color:"#f1f5f9",marginBottom:"4px"}}>{v.meaning}</div>
+                  <div style={{fontSize:"12px",color:"#64748b"}}>{v.exampleJa}</div>
+                </div>
+              ))}
+              <button onClick={()=>{setShowWrongModal(false);startQuiz(true);}} style={{...btnStyle("#f87171"),marginTop:"8px"}}>🔁 この{savedWrong.length}問を解き直す</button>
+            </div>
+          </div>
+        )}
+
+        {showMasteredModal && (
+          <div onClick={()=>setShowMasteredModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#1e293b",borderRadius:"20px 20px 0 0",padding:"20px",width:"100%",maxWidth:"480px",maxHeight:"80vh",overflowY:"auto"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+                <div><div style={{fontSize:"16px",fontWeight:"700"}}>習得済みの単語</div><div style={{fontSize:"12px",color:"#34d399"}}>{masteredCount}語</div></div>
+                <button onClick={()=>setShowMasteredModal(false)} style={{background:"#334155",border:"none",color:"#94a3b8",borderRadius:"8px",padding:"6px 12px",cursor:"pointer"}}>✕ 閉じる</button>
+              </div>
+              {VOCAB.filter(v=>{const p=progress[v.id];return p&&p.total>=2&&p.correct/p.total>=0.8;}).map(v=>(
+                <div key={v.id} style={{background:"#0f172a",borderRadius:"12px",padding:"14px",marginBottom:"8px",borderLeft:"3px solid #34d399"}}>
+                  <div style={{fontWeight:"700",fontSize:"14px",color:"#a78bfa",marginBottom:"4px"}}>{v.phrase}</div>
+                  <div style={{fontSize:"13px",color:"#f1f5f9",marginBottom:"4px"}}>{v.meaning}</div>
+                  <div style={{fontSize:"12px",color:"#64748b"}}>{v.exampleJa}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{width:"100%",maxWidth:"360px",marginBottom:"14px"}}>
+          <div style={{fontSize:"12px",color:"#64748b",marginBottom:"6px",textAlign:"center"}}>セクションを選ぶ</div>
+          <div style={{display:"flex",gap:"4px",flexWrap:"wrap",justifyContent:"center"}}>
+            {SECTIONS.map((s,i)=>(
+              <button key={i} onClick={()=>setSectionIdx(i)} style={{padding:"7px 10px",borderRadius:"8px",border:`2px solid ${sectionIdx===i?"#a78bfa":"#1e293b"}`,background:sectionIdx===i?"#2e1065":"#1e293b",color:sectionIdx===i?"#a78bfa":"#64748b",fontWeight:sectionIdx===i?"700":"400",fontSize:"12px",cursor:"pointer"}}>{s.label}</button>
+            ))}
+          </div>
+          <div style={{fontSize:"11px",color:"#475569",textAlign:"center",marginTop:"4px"}}>{pool.length}語から出題</div>
+        </div>
+
+        <div style={{width:"100%",maxWidth:"360px",marginBottom:"14px"}}>
+          <div style={{fontSize:"12px",color:"#64748b",marginBottom:"6px",textAlign:"center"}}>問題数を選ぶ</div>
+          <div style={{display:"flex",gap:"6px"}}>
+            {COUNT_OPTIONS.map(n=>{
+              const disabled=n!=="全"&&n>pool.length;
+              return <button key={n} onClick={()=>!disabled&&setQuestionCount(n)} style={{flex:1,padding:"8px 0",borderRadius:"8px",border:`2px solid ${questionCount===n&&!disabled?"#60a5fa":"#1e293b"}`,background:questionCount===n&&!disabled?"#1e3a5f":"#1e293b",color:disabled?"#1e293b":questionCount===n?"#60a5fa":"#64748b",fontWeight:questionCount===n?"700":"400",fontSize:"13px",cursor:disabled?"default":"pointer"}}>{n}</button>;
+            })}
+          </div>
+        </div>
+
+        <div style={{width:"100%",maxWidth:"360px",marginBottom:"16px"}}>
+          <div style={{fontSize:"12px",color:"#64748b",marginBottom:"6px",textAlign:"center"}}>出題モード</div>
+          <div style={{display:"flex",gap:"8px"}}>
+            <button onClick={()=>setQuizMode("meaning")} style={{flex:1,padding:"10px 0",borderRadius:"10px",border:`2px solid ${quizMode==="meaning"?"#60a5fa":"#1e293b"}`,background:quizMode==="meaning"?"#1e3a5f":"#1e293b",color:quizMode==="meaning"?"#60a5fa":"#64748b",fontWeight:quizMode==="meaning"?"700":"400",fontSize:"13px",cursor:"pointer"}}>📖 意味を答える</button>
+            <button onClick={()=>setQuizMode("fill")} style={{flex:1,padding:"10px 0",borderRadius:"10px",border:`2px solid ${quizMode==="fill"?"#a78bfa":"#1e293b"}`,background:quizMode==="fill"?"#2e1065":"#1e293b",color:quizMode==="fill"?"#a78bfa":"#64748b",fontWeight:quizMode==="fill"?"700":"400",fontSize:"13px",cursor:"pointer"}}>✏️ 穴埋め</button>
+          </div>
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:"10px",width:"100%",maxWidth:"360px"}}>
+          <button onClick={()=>startQuiz(false,quizMode)} style={btnStyle(quizMode==="fill"?"#8b5cf6":"#3b82f6")}>
+            {quizMode==="fill"?"✏️":"📝"} スタート（{questionCount==="全"?pool.length:Math.min(questionCount,pool.length)}問）
+          </button>
+          {savedWrong.length>0&&(
+            <div style={{borderTop:"1px solid #1e293b",paddingTop:"12px"}}>
+              <div style={{fontSize:"12px",color:"#64748b",textAlign:"center",marginBottom:"8px"}}>── 間違えた問題を解き直す ──</div>
+              <button onClick={()=>startQuiz(true,quizMode)} style={btnStyle("#f87171")}>🔁 解き直す（{savedWrong.length}問）</button>
+            </div>
+          )}
+          <button onClick={()=>setMode("ranking")} style={btnStyle("#d97706",true)}>📊 苦手度ランキング</button>
+          <button onClick={()=>setMode("review")} style={btnStyle("#0f766e",true)}>📚 単語一覧を見る</button>
+        </div>
+
+        {Object.keys(progress).length>0&&(
+          <button onClick={()=>{setProgress({});setSavedWrong([]);try{localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(WRONG_KEY);}catch(e){}}}
+            style={{marginTop:"16px",background:"none",border:"1px solid #334155",color:"#64748b",borderRadius:"8px",padding:"8px 16px",cursor:"pointer",fontSize:"12px"}}>
+            記録をリセット
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (mode==="quiz") {
+    if (!questions.length||!questions[current]) return null;
+    const q=questions[current];
+    const isCorrect=selected===q.correct;
+    return (
+      <div style={{minHeight:"100vh",background:"#0f172a",color:"#f1f5f9",display:"flex",flexDirection:"column",alignItems:"center",padding:"20px"}}>
+        <div style={{width:"100%",maxWidth:"480px",marginBottom:"14px"}}>
+          {isRetry&&<div style={{fontSize:"11px",color:"#f87171",letterSpacing:"2px",textAlign:"center",marginBottom:"4px"}}>🔁 解き直しモード</div>}
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:"13px",color:"#94a3b8",marginBottom:"5px"}}>
+            <span>{current+1} / {questions.length}</span><span>正解: {score}</span>
+          </div>
+          <div style={{height:"6px",background:"#1e293b",borderRadius:"4px"}}>
+            <div style={{height:"100%",width:`${(current/questions.length)*100}%`,background:isRetry?"linear-gradient(90deg,#f87171,#f97316)":"linear-gradient(90deg,#3b82f6,#8b5cf6)",borderRadius:"4px",transition:"width 0.3s"}}/>
+          </div>
+        </div>
+
+        <div style={{width:"100%",maxWidth:"480px",background:"linear-gradient(145deg,#1e293b,#0f1f35)",border:"1px solid #334155",borderRadius:"20px",padding:"22px",marginBottom:"14px"}}>
+          <div style={{fontSize:"11px",letterSpacing:"3px",color:"#64748b",textTransform:"uppercase",marginBottom:"12px",textAlign:"center"}}>
+            {quizMode==="fill"?"空欄に入る熟語は？":"この熟語の意味は？"}
+          </div>
+          {quizMode==="fill"?(
+            <div style={{fontSize:"clamp(16px,4vw,22px)",fontWeight:"700",color:"#f1f5f9",lineHeight:1.8,textAlign:"center",marginBottom:"16px"}}>
+              {blankExample(q.item.example,q.item.blank).split("________").map((part,i,arr)=>(
+                <span key={i}>{part}{i<arr.length-1&&(
+                  selected!==null
+                    ?<span style={{background:"linear-gradient(135deg,#1d4ed8,#7c3aed)",color:"#fff",fontWeight:"800",borderRadius:"6px",padding:"2px 8px",margin:"0 2px"}}>{q.item.blank}</span>
+                    :<span style={{background:"#334155",color:"#94a3b8",fontWeight:"800",borderRadius:"6px",padding:"2px 20px",margin:"0 2px",letterSpacing:"4px"}}>?</span>
+                )}</span>
+              ))}
+            </div>
+          ):(
+            <div style={{fontSize:"clamp(16px,4vw,23px)",fontWeight:"700",color:"#f1f5f9",lineHeight:1.7,textAlign:"center",marginBottom:"16px"}}>
+              <HighlightedExample example={q.item.example} phrase={q.item.phrase}/>
+            </div>
+          )}
+          {quizMode==="meaning"&&<div style={{textAlign:"center",background:"#0f172a",borderRadius:"10px",padding:"7px 14px"}}><span style={{fontSize:"12px",color:"#94a3b8"}}>熟語：</span><span style={{fontSize:"13px",fontWeight:"700",color:"#a78bfa"}}> {q.item.phrase}</span></div>}
+          {quizMode==="fill"&&<div style={{textAlign:"center",background:"#0f172a",borderRadius:"10px",padding:"7px 14px"}}><span style={{fontSize:"12px",color:"#94a3b8"}}>意味：</span><span style={{fontSize:"13px",color:"#94a3b8"}}> {q.item.meaning}</span></div>}
+          {selected!==null&&(
+            <div style={{marginTop:"14px",background:"#0f2a1a",border:"1px solid #166534",borderRadius:"12px",padding:"12px 14px"}}>
+              <div style={{fontSize:"11px",letterSpacing:"2px",color:"#4ade80",marginBottom:"4px"}}>🇯🇵 日本語訳</div>
+              <div style={{fontSize:"14px",color:"#f1f5f9",fontWeight:"600",lineHeight:1.6}}>{q.item.exampleJa}</div>
+            </div>
+          )}
+        </div>
+
+        <div style={{width:"100%",maxWidth:"480px",display:"flex",flexDirection:"column",gap:"7px"}}>
+          {q.choices.map((c,i)=>{
+            let bg="#1e293b",border="#334155",color="#f1f5f9";
+            if(selected!==null){
+              if(c===q.correct){bg="#064e3b";border="#34d399";color="#34d399";}
+              else if(c===selected){bg="#450a0a";border="#f87171";color="#f87171";}
+              else{color="#475569";}
+            }
+            return <button key={i} onClick={()=>handleSelect(c)} style={{background:bg,border:`2px solid ${border}`,color,borderRadius:"12px",padding:"12px 14px",fontSize:"13px",textAlign:"left",cursor:selected?"default":"pointer",lineHeight:1.5}}><span style={{marginRight:"8px",fontSize:"11px",opacity:0.5}}>{["A","B","C","D"][i]}</span>{c}</button>;
+          })}
+        </div>
+
+        {selected!==null&&(
+          <div style={{marginTop:"12px",width:"100%",maxWidth:"480px"}}>
+            <div style={{background:isCorrect?"#064e3b":"#450a0a",border:`1px solid ${isCorrect?"#34d399":"#f87171"}`,borderRadius:"12px",padding:"12px",marginBottom:"8px",fontSize:"14px",color:isCorrect?"#34d399":"#f87171",textAlign:"center",fontWeight:"700"}}>
+              {isCorrect?"✓ 正解！":`✗ 不正解 → ${q.correct}`}
+            </div>
+            <button onClick={handleNext} style={btnStyle(isRetry?"#f87171":"#3b82f6")}>
+              {current+1>=questions.length?"結果を見る →":"次へ →"}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (mode==="result") {
+    const pct=allAnswers.length>0?Math.round((score/allAnswers.length)*100):0;
+    return (
+      <div style={{minHeight:"100vh",background:"#0f172a",color:"#f1f5f9",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px"}}>
+        <div style={{width:"100%",maxWidth:"480px"}}>
+          {isRetry&&<div style={{textAlign:"center",fontSize:"12px",color:"#f87171",marginBottom:"6px"}}>🔁 解き直し結果</div>}
+          <h2 style={{textAlign:"center",fontSize:"26px",fontWeight:"800",marginBottom:"6px"}}>結果</h2>
+          <div style={{textAlign:"center",fontSize:"60px",fontWeight:"800",background:pct>=80?"linear-gradient(135deg,#34d399,#60a5fa)":pct>=50?"linear-gradient(135deg,#fbbf24,#f97316)":"linear-gradient(135deg,#f87171,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1}}>{pct}%</div>
+          <div style={{textAlign:"center",color:"#94a3b8",fontSize:"15px",marginBottom:"28px"}}>{allAnswers.length}問中 {score}問正解</div>
+
+          {incorrect.length>0?(
+            <div style={{marginBottom:"20px"}}>
+              <div style={{fontSize:"12px",letterSpacing:"2px",color:"#94a3b8",textTransform:"uppercase",marginBottom:"10px"}}>間違えた問題（{incorrect.length}問）</div>
+              {incorrect.map((a,i)=>(
+                <div key={i} style={{background:"#1e293b",borderRadius:"12px",padding:"14px",marginBottom:"8px",borderLeft:"3px solid #f87171"}}>
+                  <div style={{fontSize:"clamp(13px,3vw,16px)",fontWeight:"700",color:"#f1f5f9",lineHeight:1.7,marginBottom:"6px"}}><HighlightedExample example={a.item.example} phrase={a.item.phrase}/></div>
+                  <div style={{fontSize:"12px",color:"#94a3b8",marginBottom:"4px"}}>🇯🇵 {a.item.exampleJa}</div>
+                  <div style={{fontSize:"12px",color:"#a78bfa",marginBottom:"2px"}}>熟語：{a.item.phrase}</div>
+                  <div style={{fontSize:"12px",color:"#34d399"}}>✓ {a.item.meaning}</div>
+                </div>
+              ))}
+            </div>
+          ):isRetry?(
+            <div style={{background:"#064e3b",border:"1px solid #34d399",borderRadius:"12px",padding:"14px",textAlign:"center",color:"#34d399",fontWeight:"600",marginBottom:"20px"}}>🎉 全問正解！苦手が克服されました！</div>
+          ):null}
+
+          <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+            <button onClick={()=>startQuiz(isRetry,quizMode)} style={btnStyle(isRetry?"#f87171":"#3b82f6")}>もう一度</button>
+            {incorrect.length>0&&<button onClick={()=>startQuiz(true,quizMode)} style={btnStyle("#f97316")}>🔁 間違えた{incorrect.length}問を解き直す</button>}
+            <button onClick={()=>setMode("home")} style={btnStyle("#475569",true)}>ホームへ</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode==="ranking") {
+    const ranked=VOCAB.filter(v=>progress[v.id]&&progress[v.id].total>0).map(v=>{const p=progress[v.id];return {...v,correct:p.correct,total:p.total,rate:Math.round((p.correct/p.total)*100)};}).sort((a,b)=>a.rate-b.rate||b.total-a.total);
+    return (
+      <div style={{minHeight:"100vh",background:"#0f172a",color:"#f1f5f9",padding:"20px"}}>
+        <div style={{maxWidth:"480px",margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"20px"}}>
+            <button onClick={()=>setMode("home")} style={{background:"#1e293b",border:"none",color:"#94a3b8",borderRadius:"8px",padding:"8px 14px",cursor:"pointer"}}>← 戻る</button>
+            <h2 style={{margin:0,fontSize:"18px",fontWeight:"700"}}>📊 苦手度ランキング</h2>
+          </div>
+          {ranked.length===0?(
+            <div style={{textAlign:"center",color:"#64748b",padding:"40px 0"}}><div style={{fontSize:"40px",marginBottom:"12px"}}>📝</div><div>まだテストを解いていません。</div></div>
+          ):ranked.map((v,i)=>{
+            const bc=v.rate<40?"#f87171":v.rate<70?"#fbbf24":"#34d399";
+            return (
+              <div key={v.id} style={{background:"#1e293b",borderRadius:"12px",padding:"14px",marginBottom:"8px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"3px"}}>
+                      <span style={{fontSize:"13px",fontWeight:"800",color:i<3?"#f87171":"#475569",minWidth:"24px"}}>#{i+1}</span>
+                      <span style={{fontWeight:"700",fontSize:"14px",color:"#a78bfa"}}>{v.phrase}</span>
+                    </div>
+                    <div style={{fontSize:"12px",color:"#94a3b8",marginLeft:"32px"}}>{v.meaning}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0,marginLeft:"12px"}}>
+                    <div style={{fontSize:"20px",fontWeight:"800",color:bc}}>{v.rate}%</div>
+                    <div style={{fontSize:"11px",color:"#64748b"}}>{v.correct}/{v.total}問</div>
+                  </div>
+                </div>
+                <div style={{height:"4px",background:"#0f172a",borderRadius:"4px",overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${v.rate}%`,background:bc,borderRadius:"4px"}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode==="review") {
+    const secs=[{title:"Section 1　自動詞＋前置詞＋A",range:[1,33]},{title:"Section 2　他動詞＋A＋前置詞＋B",range:[34,43]},{title:"Section 3　3語以上の動詞句",range:[44,68]},{title:"Section 4　be＋形容詞＋前置詞＋A",range:[69,96]},{title:"Section 5　前置詞＋A",range:[97,136]},{title:"Section 6　群前置詞",range:[137,152]},{title:"Section 7　副詞句を中心とした熟語",range:[153,163]},{title:"Section 8　動詞を中心とした熟語",range:[164,205]}];
+    return (
+      <div style={{minHeight:"100vh",background:"#0f172a",color:"#f1f5f9",padding:"20px"}}>
+        <div style={{maxWidth:"480px",margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"20px"}}>
+            <button onClick={()=>setMode("home")} style={{background:"#1e293b",border:"none",color:"#94a3b8",borderRadius:"8px",padding:"8px 14px",cursor:"pointer"}}>← 戻る</button>
+            <h2 style={{margin:0,fontSize:"18px",fontWeight:"700"}}>単語一覧（全205語）</h2>
+          </div>
+          {secs.map(sec=>(
+            <div key={sec.title}>
+              <div style={{fontSize:"11px",letterSpacing:"2px",color:"#60a5fa",textTransform:"uppercase",margin:"16px 0 8px",padding:"6px 10px",background:"#0f1f35",borderRadius:"6px"}}>{sec.title}</div>
+              {VOCAB.filter(v=>v.id>=sec.range[0]&&v.id<=sec.range[1]).map(v=>{
+                const p=progress[v.id];
+                const mastered=p&&p.total>=2&&p.correct/p.total>=0.8;
+                const isWrong=savedWrong.includes(v.id);
+                return (
+                  <div key={v.id} style={{background:"#1e293b",borderRadius:"10px",padding:"12px",marginBottom:"6px",borderLeft:`3px solid ${mastered?"#34d399":isWrong?"#f87171":"#334155"}`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:"700",fontSize:"13px",color:"#a78bfa",marginBottom:"2px"}}>{v.phrase}</div>
+                        <div style={{color:"#f1f5f9",fontSize:"12px",marginBottom:"3px"}}>{v.meaning}</div>
+                        <div style={{fontSize:"12px",lineHeight:1.6,marginBottom:"2px"}}><HighlightedExample example={v.example} phrase={v.phrase}/></div>
+                        <div style={{color:"#64748b",fontSize:"11px"}}>{v.exampleJa}</div>
+                      </div>
+                      <div style={{textAlign:"right",marginLeft:"10px",flexShrink:0}}>
+                        {isWrong&&<div style={{fontSize:"10px",color:"#f87171",marginBottom:"2px"}}>要復習</div>}
+                        {p?<div style={{fontSize:"11px",color:mastered?"#34d399":"#64748b"}}>{p.correct}/{p.total}</div>:<div style={{fontSize:"10px",color:"#334155"}}>未出題</div>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<VocabQuiz/>);
+  </script>
+</body>
+</html>
